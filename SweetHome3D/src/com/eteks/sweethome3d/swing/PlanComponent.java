@@ -1941,7 +1941,7 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
    * to make it fill <code>pageFormat</code> imageable size.
    */
   public float getPrintPreferredScale(Graphics g, PageFormat pageFormat) {
-    List<Selectable> printedItems = getPaintedItems(); 
+    List<Selectable> printedItems = getPrintedItemsAtSelectedLevel();
     Rectangle2D printedItemBounds = getItemsBounds(g, printedItems);
     if (printedItemBounds != null) {
       float imageableWidthCm = LengthUnit.inchToCentimeter((float)pageFormat.getImageableWidth() / 72);
@@ -2008,7 +2008,35 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
    * that makes it fill <code>pageFormat</code> imageable size if this attribute is <code>null</code>.
    */
   public int print(Graphics g, PageFormat pageFormat, int pageIndex) {
-    List<Selectable> printedItems = getPaintedItems(); 
+    List<Level> levels = this.home.getLevels();
+
+    if(levels.isEmpty()){
+      return printSingleLevel(g, pageFormat, pageIndex);
+    }
+
+    Level originalLevel = this.home.getSelectedLevel();
+
+    try{
+      int currentPage = 0;
+      for (Level level : levels){
+        if (!level.isViewable()){
+          continue;
+        }
+        if (currentPage == pageIndex){
+          this.home.setSelectedLevel(level);
+          return printSingleLevel(g, pageFormat, 0);
+        }
+        currentPage ++;
+      }
+      return NO_SUCH_PAGE;
+    }
+    finally{
+      this.home.setSelectedLevel(originalLevel);
+    }
+  }
+
+  private int printSingleLevel(Graphics g, PageFormat pageFormat, int pageIndex) {
+    List<Selectable> printedItems = getPrintedItemsAtSelectedLevel();
     Rectangle2D printedItemBounds = getItemsBounds(g, printedItems);
     if (printedItemBounds != null) {
       double imageableX = pageFormat.getImageableX();
@@ -2073,6 +2101,16 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
     } else {
       return NO_SUCH_PAGE;
     }
+  }
+
+  private List<Selectable> getPrintedItemsAtSelectedLevel() {
+    List<Selectable> printedItems = new ArrayList<Selectable>();
+    for(Selectable item : getPaintedItems()){
+      if(!(item instanceof Elevatable) || isViewableAtSelectedLevel((Elevatable) item)){
+        printedItems.add(item);
+      }
+    }
+    return printedItems;
   }
   
   /**
