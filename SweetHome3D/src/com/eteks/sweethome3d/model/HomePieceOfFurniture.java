@@ -570,6 +570,11 @@ public class HomePieceOfFurniture extends HomeObject implements PieceOfFurniture
     return this.width;
   }
 
+
+  public float getVolumn(){
+    return getWidth() * getHeight() * getDepth();
+  }
+
   /**
    * Sets the width of this piece of furniture. Once this piece is updated, 
    * listeners added to this piece will receive a change notification.
