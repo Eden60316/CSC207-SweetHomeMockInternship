@@ -608,7 +608,7 @@ public class CatalogPieceOfFurniture implements Comparable<CatalogPieceOfFurnitu
     return this.width;
   }
 
-  public float getVolumn(){
+  public float getVolume(){
     return getWidth() * getHeight() * getDepth();
   }
 
